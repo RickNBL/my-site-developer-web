@@ -459,3 +459,10 @@ body { font-size:16px; }
 @media(prefers-reduced-motion:reduce){
   .experience-number .counter{animation:none;}
 }
+
+/* Portfolio additions: same clean framing used by the existing projects. */
+.visual-pina { background: #f5ece5; }
+.visual-sueessor { background: #eee6e6; }
+/* Keep the image readable without empty bands at any viewport width. */
+.visual-pina .browser-frame img,
+.visual-sueessor .browser-frame img { object-position: center top; }
