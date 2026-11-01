@@ -466,3 +466,6 @@ body { font-size:16px; }
 /* Keep the image readable without empty bands at any viewport width. */
 .visual-pina .browser-frame img,
 .visual-sueessor .browser-frame img { object-position: center top; }
+
+/* Indigestos Moto Clube — portfolio highlight */
+.visual-indigestos{background:linear-gradient(145deg,#343437,#17191c)}
