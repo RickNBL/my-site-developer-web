@@ -211,7 +211,9 @@
     }
     if (wa && contact) {
       const r = contact.getBoundingClientRect();
-      wa.classList.toggle('hidden', r.top < innerHeight * .7 && r.bottom > 0);
+      const heroEl = $('#inicio');
+      const inHero = heroEl && heroEl.getBoundingClientRect().bottom > innerHeight * .35;
+      wa.classList.toggle('hidden', inHero || (r.top < innerHeight * .7 && r.bottom > 0));
     }
     let currentSection = null;
     sections.forEach(sec => { if (sec.getBoundingClientRect().top < innerHeight * .4) currentSection = sec; });

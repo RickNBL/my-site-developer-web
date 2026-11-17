@@ -89,7 +89,7 @@ html[lang=en] .hero-title{font-size:clamp(2.6rem,4.9vw,5.6rem)}
 
 .hero-left{grid-area:copy;align-self:start}
 .hero-stage{grid-area:stage;align-self:center;position:relative;padding:2% 0 0}
-.orbit{position:absolute;inset:-12% -8% -6%;width:116%;height:118%;pointer-events:none;z-index:2;overflow:visible}
+.orbit{position:absolute;inset:-12% -8% -6%;width:116%;height:118%;pointer-events:none;z-index:0;overflow:visible}
 .orbit-path{stroke-dasharray:2600;stroke-dashoffset:2600}
 .orbit-dot{opacity:0}
 
