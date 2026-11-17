@@ -132,8 +132,8 @@ ul,ol{padding:0;list-style:none}
     radial-gradient(40% 40% at 15% 85%,rgba(44,59,234,.08),transparent 70%),
     var(--alu);
 }
-.hero-stage{position:relative;flex:1;display:flex;align-items:center;max-width:var(--wrap);width:100%;margin:0 auto;min-height:52vh}
-.orbit{position:absolute;left:-6%;width:112%;top:50%;transform:translateY(-50%);height:auto;pointer-events:none;overflow:visible}
+.hero-stage{position:relative;flex:1;display:flex;align-items:center;max-width:1760px;width:100%;margin:0 auto;min-height:56vh}
+.orbit{position:absolute;left:1%;width:98%;top:50%;transform:translateY(-50%);height:auto;pointer-events:none;overflow:visible}
 .orbit-back{z-index:0}
 .orbit-front{z-index:2}
 .ring{fill:none;stroke-width:1.6;stroke-dasharray:1;stroke-dashoffset:1}
@@ -144,9 +144,39 @@ ul,ol{padding:0;list-style:none}
 @keyframes draw{to{stroke-dashoffset:0}}
 .sphere{filter:drop-shadow(0 6px 10px rgba(13,20,102,.35))}
 
+/* background texture + cursor glow */
+.hero-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(29,32,36,.22) 1px,transparent 1.4px);background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(70% 60% at 50% 45%,#000 10%,transparent 75%);mask-image:radial-gradient(70% 60% at 50% 45%,#000 10%,transparent 75%);
+  opacity:0;transition:opacity 1.6s ease .6s}
+.is-loaded .hero-grid{opacity:.55}
+.hero-glow{position:absolute;left:0;top:0;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(44,59,234,.16),rgba(44,59,234,.05) 40%,transparent 70%);
+  transform:translate(var(--gx,70vw),var(--gy,40vh));transition:opacity .6s;will-change:transform}
+
+/* secondary rings */
+.ring-ghost{fill:none;stroke:rgba(29,32,36,.16);stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1}
+.ring-ghost-2{stroke:rgba(44,59,234,.22)}
+.is-loaded .ring-ghost{animation:draw 2.6s var(--ease-io) .9s forwards}
+.is-loaded .ring-ghost-2{animation-delay:1.2s}
+
+/* project cards riding the orbit */
+.orbit-cards{position:absolute;inset:0;pointer-events:none}
+.o-card{
+  position:absolute;left:0;top:0;width:clamp(120px,10.5vw,210px);aspect-ratio:16/10;
+  margin:calc(clamp(120px,10.5vw,210px) * -.3125) 0 0 calc(clamp(120px,10.5vw,210px) * -.5);
+  border-radius:10px;overflow:hidden;pointer-events:auto;background:var(--graphite);
+  box-shadow:0 0 0 1px rgba(255,255,255,.6),0 24px 40px -18px rgba(29,32,36,.55);
+  opacity:0;will-change:transform;transition:box-shadow .4s,filter .4s;
+}
+.o-card img{width:100%;height:100%;object-fit:cover;object-position:top}
+.o-card::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 40%);pointer-events:none}
+.o-card:hover{box-shadow:0 0 0 2px var(--cobalt),0 30px 50px -18px rgba(44,59,234,.6)}
+
+
 .hero-name{
   position:relative;z-index:1;width:100%;
-  font-size:clamp(4.4rem,17vw,17.5rem);line-height:.8;letter-spacing:-.025em;
+  font-size:clamp(4.4rem,min(17.5vw,36vh),26rem);line-height:.8;letter-spacing:-.025em;
   font-weight:800;font-variation-settings:"opsz" 96,"wdth" 75;
   display:flex;flex-direction:column;
 }
@@ -165,7 +195,7 @@ ul,ol{padding:0;list-style:none}
 @keyframes shine{0%,100%{background-position:50% 0%}50%{background-position:50% 100%}}
 
 .hero-foot{
-  position:relative;z-index:3;max-width:var(--wrap);width:100%;margin:28px auto 0;
+  position:relative;z-index:3;max-width:1760px;width:100%;margin:28px auto 0;
   display:grid;grid-template-columns:1.25fr 1fr auto;gap:clamp(24px,4vw,64px);align-items:end;
   padding-top:24px;border-top:1px solid var(--line);
 }
@@ -422,6 +452,8 @@ ul,ol{padding:0;list-style:none}
   .hero{padding-top:96px}
   .hero-stage{min-height:44vh}
   .hero-name{font-size:26.5vw}
+  .o-card{width:84px;margin:-26px 0 0 -42px;border-radius:6px}
+  .hero-glow{display:none}
   .orbit{left:-40%;width:180%}
   .hero-foot{grid-template-columns:1fr;gap:28px}
   .hero-facts{grid-template-columns:repeat(3,1fr);gap:12px}
@@ -442,7 +474,8 @@ ul,ol{padding:0;list-style:none}
   .grain{animation:none}
   .ch{transform:none}
   .intro-item{opacity:1;transform:none}
-  .ring{stroke-dashoffset:0}
+  .ring,.ring-ghost{stroke-dashoffset:0}
+  .o-card{opacity:1}
   .reveal{opacity:1;transform:none}
   .reveal-lines .rl > span{transform:none}
 }

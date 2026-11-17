@@ -82,7 +82,7 @@
       description:'Criação de sites profissionais e responsivos por Henrique Silva. 9 anos de desenvolvimento web, experiência em TI, portfólio de projetos reais e planos a partir de R$ 1.499.',
       ogTitle:'Henrique Silva — Criação de Sites Profissionais',
       ogDescription:'Sites empresariais personalizados, rápidos e responsivos. Conheça projetos reais e solicite um orçamento pelo WhatsApp.',
-      cursorOpen:'Abrir',
+      cursorOpen:'Abrir', cursorView:'Ver',
       wa:{nav:'Olá, Henrique! Quero conversar sobre a criação de um site.',hero:'Olá, Henrique! Vi seu site e quero falar sobre um projeto.',portfolio:'Olá, Henrique! Gostei dos projetos do seu portfólio. Quero criar um site.',guidance:'Olá, Henrique! Gostaria de ajuda para escolher o plano ideal para o meu site.',contact:'Olá, Henrique! Quero conversar sobre a criação do meu site.',footer:'Olá, Henrique!',floating:'Olá, Henrique! Gostaria de um orçamento para meu site.'}
     },
     en:{
@@ -90,7 +90,7 @@
       description:'Professional websites and custom web development by Henrique Silva. 9 years of web development, IT experience, real projects and packages starting at €399.',
       ogTitle:'Henrique Silva — Professional Website Development',
       ogDescription:'Custom, responsive business websites. Explore real projects and request a quote directly on WhatsApp.',
-      cursorOpen:'Open',
+      cursorOpen:'Open', cursorView:'View',
       wa:{nav:'Hi Henrique! I’d like to talk about building a website.',hero:'Hi Henrique! I saw your portfolio and would like to discuss a website project.',portfolio:'Hi Henrique! I liked the projects in your portfolio and would like a website for my business.',guidance:'Hi Henrique! Could you help me choose the right website package?',contact:'Hi Henrique! I’d like to discuss building my website.',footer:'Hi Henrique!',floating:'Hi Henrique! I’d like a quote for a new website.'}
     }
   };
@@ -144,6 +144,7 @@
     $('#main-nav')?.setAttribute('aria-label', lang === 'en' ? 'Main navigation' : 'Navegação principal');
     langButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
     $$('[data-cursor="Abrir"], [data-cursor="Open"]').forEach(el => { el.dataset.cursor = copy[lang].cursorOpen; });
+    $$('[data-cursor="Ver"], [data-cursor="View"]').forEach(el => { el.dataset.cursor = copy[lang].cursorView; });
     $$('.year').forEach(y => { y.textContent = String(new Date().getFullYear()); });
     setMenuLabel();
     setWhatsApp();
@@ -248,17 +249,69 @@
   }
   let heroVisible = true;
   let sphereIn = 0;
+  const hero = $('.hero');
+  const backSvg = $('.orbit-back');
+  const cards = $$('.o-card');
+  const glow = $('.hero-glow');
+  const chars = $$('.hero-name .ch');
+  const cardState = {speed:1, target:1};
+  let cardPhase = 0;
+
+  // Place the project cards on the same ellipse as the ring (SVG units → stage pixels).
+  function placeCards(intro) {
+    if (!cards.length || !backSvg) return;
+    const sr = stage.getBoundingClientRect();
+    const vr = backSvg.getBoundingClientRect();
+    const k = vr.width / 1000;
+    const ox = vr.left - sr.left, oy = vr.top - sr.top;
+    const rad = orbit.rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+    cards.forEach((card, i) => {
+      const phi = cardPhase + i * (Math.PI * 2 / cards.length);
+      const lx = orbit.rx * Math.cos(phi), ly = orbit.ry * Math.sin(phi);
+      const x = ox + (orbit.cx + lx * cos - ly * sin) * k;
+      const y = oy + (orbit.cy + lx * sin + ly * cos) * k;
+      const depth = Math.sin(phi);                    // -1 back … 1 front
+      const front = depth >= 0;
+      const scale = .58 + .42 * (depth + 1) / 2;
+      const turn = Math.cos(phi) * -28;               // cards face the viewer as they come round
+      card.style.zIndex = front ? 3 : 0;
+      card.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) perspective(700px) rotateY(${turn.toFixed(1)}deg) rotate(${(orbit.rot * .5).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+      card.style.opacity = (intro * (front ? 1 : .45 + .55 * (depth + 1))).toFixed(3);
+      card.style.filter = front ? '' : `blur(${(-depth * 1.6).toFixed(2)}px) saturate(.7)`;
+    });
+  }
+  cards.forEach(card => {
+    card.addEventListener('pointerenter', () => { cardState.target = .08; });
+    card.addEventListener('pointerleave', () => { cardState.target = 1; });
+    card.addEventListener('click', () => { const i = +card.dataset.work; setTimeout(() => setWork(i), 50); });
+  });
+
+  // Variable-font proximity: letters near the pointer widen (wdth 75 → 100).
+  let charCenters = [];
+  const measureChars = () => {
+    charCenters = chars.map(c => { const r = c.getBoundingClientRect(); return {x:r.left + r.width / 2 + scrollX, y:r.top + r.height / 2 + scrollY}; });
+  };
+  const charF = chars.map(() => 0);
+  const pointer = {x:0, y:0, last:-1e9};
+
   if (stage && ringBack) {
     drawOrbit();
     if (!reduce) {
-      stage.closest('.hero').addEventListener('pointermove', e => {
+      hero.addEventListener('pointermove', e => {
         const rect = stage.getBoundingClientRect();
         orbit.mouseX = ((e.clientX - rect.left) / rect.width - .5) * 2;
         orbit.mouseY = ((e.clientY - rect.top) / rect.height - .5) * 2;
+        if (e.pointerType === 'mouse') { pointer.x = e.clientX + scrollX; pointer.y = e.clientY + scrollY; pointer.last = performance.now(); }
+        const hr = hero.getBoundingClientRect();
+        glow?.style.setProperty('--gx', (e.clientX - hr.left) + 'px');
+        glow?.style.setProperty('--gy', (e.clientY - hr.top) + 'px');
       });
+      hero.addEventListener('pointerleave', () => { pointer.last = -1e9; });
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe(stage);
       }
+      setTimeout(measureChars, 2300);
+      window.addEventListener('resize', measureChars, {passive:true});
       const start = performance.now();
       const loop = now => {
         if (heroVisible) {
@@ -268,13 +321,38 @@
           orbit.rot = lerp(orbit.rot, orbit.tRot, .06);
           orbit.ry = lerp(orbit.ry, orbit.tRy, .06);
           sphereIn = clamp((now - start - 1500) / 900);
-          orbit.theta += 0.0065 + scrollFactor * 0.02;
+          cardState.speed = lerp(cardState.speed, cardState.target, .08);
+          orbit.theta += (0.0065 + scrollFactor * 0.02) * cardState.speed;
+          cardPhase += (0.0022 + scrollFactor * 0.008) * cardState.speed;
           drawOrbit();
           if (sphereIn < 1) spheres.forEach(s => { const r = +s.getAttribute('r'); s.setAttribute('r', (r * sphereIn).toFixed(1)); });
+          const cardsIn = clamp((now - start - 1300) / 1400);
+          placeCards(1 - Math.pow(1 - cardsIn, 3));
+
+          // letters: follow the mouse, or an idle wave sweeping across the name
+          if (charCenters.length) {
+            let px = pointer.x, py = pointer.y, radius = 260;
+            if (now - pointer.last > 1800) {
+              const first = charCenters[0], last = charCenters[charCenters.length - 1];
+              const t = (Math.sin(now * 0.00045) + 1) / 2;
+              px = lerp(first.x - 200, last.x + 200, t);
+              py = lerp(first.y, last.y, t);
+              radius = 220;
+            }
+            charCenters.forEach((c, i) => {
+              const d = Math.hypot(c.x - px, (c.y - py) * 1.4);
+              const f = Math.pow(clamp(1 - d / radius), 2);
+              charF[i] = lerp(charF[i], f, .12);
+              chars[i].style.fontVariationSettings = `"opsz" 96, "wdth" ${(75 + charF[i] * 25).toFixed(1)}`;
+              chars[i].style.filter = charF[i] > .02 ? `brightness(${(1 + charF[i] * .35).toFixed(3)})` : '';
+            });
+          }
         }
         requestAnimationFrame(loop);
       };
       requestAnimationFrame(loop);
+    } else {
+      placeCards(1);
     }
   }
 

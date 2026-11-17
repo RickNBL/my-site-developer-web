@@ -54,6 +54,8 @@
 
 <!-- HERO -->
 <section class="hero" id="inicio" aria-labelledby="hero-title">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
   <div class="hero-stage" id="hero-stage">
     <svg class="orbit orbit-back" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
@@ -69,6 +71,8 @@
           <stop offset="1" stop-color="#0D1466"/>
         </radialGradient>
       </defs>
+      <ellipse class="ring-ghost" cx="500" cy="300" rx="420" ry="165" transform="rotate(21 500 300)" pathLength="1"/>
+      <ellipse class="ring-ghost ring-ghost-2" cx="500" cy="300" rx="490" ry="70" transform="rotate(-4 500 300)" pathLength="1"/>
       <g class="orbit-g">
         <path class="ring ring-back" pathLength="1" d="M30,300 A470,120 0 0 1 970,300"/>
         <circle class="sphere" r="0" cx="500" cy="300" fill="url(#sphere-grad)"/>
@@ -99,6 +103,15 @@
         <circle class="sphere" r="0" cx="500" cy="300" fill="url(#sphere-grad-2)"/>
       </g>
     </svg>
+    <div class="orbit-cards" id="orbit-cards" aria-hidden="true">
+      <a class="o-card" href="#trabalhos" data-work="0" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-indigestos.webp" alt="" width="1899" height="938" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="1" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-sitcon.webp" alt="" width="1900" height="918" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="2" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-prime.webp" alt="" width="1900" height="917" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="3" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-seacare.webp" alt="" width="1901" height="913" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="4" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-gsi.webp" alt="" width="1901" height="918" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="5" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-pina.webp" alt="" width="1700" height="821" decoding="async"/></a>
+      <a class="o-card" href="#trabalhos" data-work="6" tabindex="-1" data-cursor="Ver"><img src="assets/projeto-sueessor.webp" alt="" width="1700" height="821" decoding="async"/></a>
+    </div>
   </div>
 
   <div class="hero-foot">

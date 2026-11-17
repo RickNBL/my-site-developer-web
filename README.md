@@ -70,6 +70,8 @@ Nova identidade visual construída a partir do monograma HS (letras prateadas + 
 - **Paleta:** alumínio `#E3E5E8`, névoa `#EEF0F2`, grafite aço `#1D2024`, aço `#5B626B` e um único acento cobalto `#2C3BEA`.
 - **Tipografia:** Bricolage Grotesque (títulos condensados e pesados, texto corrido na mesma família).
 - **Hero:** nome em tipografia cromada com brilho animado e um anel orbital 3D que passa por trás e pela frente das letras; a esfera gira e o anel reage ao mouse e à rolagem.
+- **Projetos em órbita:** os prints dos 7 sites giram no anel do hero, passando por trás e pela frente do nome; ao passar o mouse a órbita desacelera, e o clique leva ao projeto no portfólio.
+- **Letras vivas:** a fonte variável alarga as letras do nome perto do cursor (sem mouse, uma onda percorre o nome sozinha).
 - **Experiência:** contador de anos e régua 2017–2026 preenchida pela rolagem, mais a lista do que é entregue em cada projeto.
 - **Portfólio:** lista de projetos + janela de navegador fixa que troca o print com efeito de cortina (no celular, o print aparece em cada item).
 - **Outras animações:** sequência de entrada, cursor personalizado, botões magnéticos, faixa de projetos que acelera com a rolagem, manifesto que se acende palavra por palavra, linha do processo com a esfera percorrendo e destaque de luz nos planos.
