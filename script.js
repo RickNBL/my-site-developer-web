@@ -1,205 +1,337 @@
+/* Henrique Silva — interactions
+   1. Menu + header state
+   2. Hero stage: wireframe → real screenshot, cycling through the live projects
+   3. Scroll-linked pieces: 9-year ruler, process line, headline widening
+   4. Layer stack and portfolio preview (respond to the visitor's pointer/focus)
+   5. Bilingual content (PT / EN) with fixed regional pricing */
+
 (() => {
   'use strict';
-  const header = document.querySelector('.site-header');
-  const toggle = document.querySelector('#menu-toggle');
-  const menu = document.querySelector('#main-nav');
-  const progress = document.querySelector('#reading-progress');
-  const video = document.querySelector('#identity-video');
-  const heroFilm = document.querySelector('.hero-film');
-  const year = document.querySelector('#year');
-  if (year) year.textContent = String(new Date().getFullYear());
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const isEN = () => document.documentElement.lang === 'en';
 
+  /* ---------- menu ---------- */
+  const header = $('.site-header');
+  const toggle = $('#menu-toggle');
+  const menu = $('#main-nav');
+  const setToggleLabel = (open) => toggle?.setAttribute('aria-label', isEN() ? (open ? 'Close menu' : 'Open menu') : (open ? 'Fechar menu' : 'Abrir menu'));
   function closeMenu() {
     header?.classList.remove('menu-open');
-    document.body.classList.remove('menu-open');
     toggle?.setAttribute('aria-expanded', 'false');
-    toggle?.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Open menu' : 'Abrir menu');
+    setToggleLabel(false);
   }
   toggle?.addEventListener('click', () => {
     const open = toggle.getAttribute('aria-expanded') !== 'true';
     header?.classList.toggle('menu-open', open);
-    document.body.classList.toggle('menu-open', open);
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', document.documentElement.lang === 'en' ? (open ? 'Close menu' : 'Open menu') : (open ? 'Fechar menu' : 'Abrir menu'));
+    setToggleLabel(open);
   });
-  menu?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu(); });
-  window.addEventListener('resize', () => { if (window.innerWidth > 700) closeMenu(); }, { passive:true });
+  $$('a', menu).forEach(a => a.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+  window.addEventListener('resize', () => { if (innerWidth > 760) closeMenu(); }, { passive: true });
 
-  if ('IntersectionObserver' in window) {
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: .065, rootMargin: '0px 0px -22px 0px' });
-    document.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));
-  } else {
-    document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));
+  /* ---------- hero stage ---------- */
+  const rows = $$('.work-row');
+  const projects = rows.map(row => ({
+    row,
+    img: row.dataset.img,
+    host: row.dataset.host,
+    href: row.href,
+    name: $('.work-name', row).textContent.trim()
+  }));
+  // Warm the cache so swaps never flash.
+  projects.forEach(p => { const i = new Image(); i.src = p.img; });
+
+  const stageView = $('.stage-view');
+  const stageImg = $('#stage-img');
+  const stageUrl = $('#stage-url');
+  const stageName = $('#stage-name');
+  const stageSector = $('#stage-sector');
+  const stageLink = $('#stage-link');
+  const ticks = $('#stage-ticks');
+  const stage = $('.hero-stage');
+  let current = 0, timer, typing, paused = false;
+
+  projects.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', p.name);
+    b.addEventListener('click', () => { show(i); restart(); });
+    ticks?.appendChild(b);
+  });
+
+  function typeUrl(text) {
+    clearInterval(typing);
+    if (reduce) { stageUrl.textContent = text; return; }
+    let n = 0; stageUrl.textContent = '';
+    typing = setInterval(() => {
+      stageUrl.textContent = text.slice(0, ++n);
+      if (n >= text.length) clearInterval(typing);
+    }, 28);
+  }
+  function updateCaption() {
+    const p = projects[current];
+    stageName.textContent = p.name;
+    stageSector.textContent = $('.work-sector', p.row).textContent.trim();
+    stageLink.href = p.href;
+  }
+  function show(i, first = false) {
+    current = (i + projects.length) % projects.length;
+    const p = projects[current];
+    $$('button', ticks).forEach((b, k) => b.setAttribute('aria-current', String(k === current)));
+    updateCaption();
+    stageImg.alt = $('.work-thumb', p.row)?.alt || '';
+    if (reduce) { stageImg.src = p.img; stageUrl.textContent = p.host; return; }
+    stageView.classList.add('building');
+    typeUrl(p.host);
+    setTimeout(() => {
+      stageImg.src = p.img;
+      const reveal = () => stageView.classList.remove('building');
+      (stageImg.decode ? stageImg.decode() : Promise.resolve()).then(reveal, reveal);
+    }, first ? 1200 : 750);
+  }
+  function restart() {
+    clearInterval(timer);
+    if (reduce) return;
+    timer = setInterval(() => { if (!paused && !document.hidden) show(current + 1); }, 5200);
+  }
+  if (stageView && projects.length) {
+    show(0, true);
+    restart();
+    stage.addEventListener('pointerenter', () => { paused = true; });
+    stage.addEventListener('pointerleave', () => { paused = false; });
+    stage.addEventListener('focusin', () => { paused = true; });
+    stage.addEventListener('focusout', () => { paused = false; });
   }
 
-
-
-  const counters = document.querySelectorAll('[data-counter]');
-  if ('IntersectionObserver' in window) {
-    const counterObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const target = Number(el.getAttribute('data-counter')) || 0;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          el.textContent = String(target);
-          observer.unobserve(el);
-          return;
-        }
-        const duration = 1400;
-        el.textContent = '0';
-        const start = performance.now();
-        const tick = (now) => {
-          const progress = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = String(Math.round(target * eased));
-          if (progress < 1) requestAnimationFrame(tick);
-          else el.textContent = String(target);
-        };
-        requestAnimationFrame(tick);
-        observer.unobserve(el);
+  /* ---------- orbit dots (the HS monogram's orbit) ---------- */
+  const dots = $$('[data-orbit]').map(dot => {
+    const e = $(dot.dataset.orbit);
+    return { dot, cx: +e.getAttribute('cx'), cy: +e.getAttribute('cy'), rx: +e.getAttribute('rx'), ry: +e.getAttribute('ry'), period: (+dot.dataset.period || 14) * 1000 };
+  });
+  if (dots.length && !reduce) {
+    const spin = (now) => {
+      dots.forEach(o => {
+        const t = Math.PI + (now / o.period) * Math.PI * 2;
+        o.dot.setAttribute('cx', (o.cx + o.rx * Math.cos(t)).toFixed(1));
+        o.dot.setAttribute('cy', (o.cy + o.ry * Math.sin(t)).toFixed(1));
       });
-    }, { threshold: .5 });
-    counters.forEach(el => counterObserver.observe(el));
-  } else {
-    counters.forEach(el => { el.textContent = el.getAttribute('data-counter') || '0'; });
-  }
-
-  // The branded film is deliberately silent, without controls or any click-to-pause behavior.
-  // Restart after a scroll gesture finishes while visible and each time it re-enters the screen.
-  // Scrolling dozens of pixels emits many events; debounce to avoid trapping the film on frame 1.
-  let filmVisible = true;
-  let wasVisible = false;
-  let scrollRestartTimer;
-  let lastReset = 0;
-  let lastScrollY = window.scrollY;
-  if (video) {
-    video.muted = true;
-    video.volume = 0;
-    video.defaultMuted = true;
-    video.controls = false;
-    video.loop = true;
-    const safePlay = () => video.play().catch(() => { /* Some browsers defer autoplay until interaction. */ });
-    video.addEventListener('volumechange', () => {
-      if (!video.muted || video.volume !== 0) { video.muted = true; video.volume = 0; }
-    });
-    const restartVideo = () => {
-      if (!filmVisible || document.hidden || !video.duration || Date.now() - lastReset < 350) return;
-      lastReset = Date.now();
-      try { video.currentTime = 0; } catch(_) { /* Film not ready yet. */ }
-      safePlay();
+      requestAnimationFrame(spin);
     };
-    if ('IntersectionObserver' in window && heroFilm) {
-      const filmObserver = new IntersectionObserver(entries => {
-        filmVisible = entries[0].isIntersecting;
-        if (filmVisible && !wasVisible) restartVideo();
-        wasVisible = filmVisible;
-      }, { threshold: .12 });
-      filmObserver.observe(heroFilm);
-    }
-    video.addEventListener('loadedmetadata', safePlay, {once:true});
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { lastReset = 0; restartVideo(); } });
-    window.addEventListener('pageshow', safePlay);
-    safePlay();
-    function handleScrollVideo() {
-      const y = window.scrollY;
-      if (Math.abs(y - lastScrollY) > 8) {
-        lastScrollY = y;
-        clearTimeout(scrollRestartTimer);
-        scrollRestartTimer = window.setTimeout(restartVideo, 130);
-      }
-    }
-    window.addEventListener('scroll', handleScrollVideo, { passive:true });
+    requestAnimationFrame(spin);
   }
 
-  let scheduled = false;
-  function updateScroll() {
-    header?.classList.toggle('scrolled', window.scrollY > 14);
-    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    if (progress) progress.style.width = `${Math.min(100, window.scrollY / max * 100)}%`;
-    scheduled = false;
+  /* ---------- headlines widen as they enter ---------- */
+  const widen = $$('.h2, .contact-title');
+  if ('IntersectionObserver' in window && !reduce) {
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { threshold: .15 });
+    widen.forEach(el => io.observe(el));
+  } else widen.forEach(el => el.classList.add('in'));
+
+  /* ---------- layer stack ---------- */
+  const stack = $('#stack');
+  const plates = $$('.plate', stack || document);
+  const layerButtons = $$('#layers-list button');
+  function activateLayer(i) {
+    layerButtons.forEach((b, k) => { b.classList.toggle('active', k === i); b.setAttribute('aria-pressed', String(k === i)); });
+    plates.forEach((p, k) => p.classList.toggle('active', k === i));
   }
-  window.addEventListener('scroll', () => {
-    if (!scheduled) { scheduled = true; requestAnimationFrame(updateScroll); }
-  }, { passive:true });
-  updateScroll();
-})();
+  layerButtons.forEach((b, i) => {
+    b.addEventListener('mouseenter', () => activateLayer(i));
+    b.addEventListener('focus', () => activateLayer(i));
+    b.addEventListener('click', () => activateLayer(i));
+  });
+  if (stack) {
+    if ('IntersectionObserver' in window && !reduce) {
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        stack.classList.add('in');
+        setTimeout(() => { stack.classList.add('settled'); activateLayer(0); }, 1100);
+        io.disconnect();
+      }, { threshold: .35 });
+      io.observe(stack);
+    } else { stack.classList.add('in', 'settled'); activateLayer(0); }
+  }
 
+  /* ---------- portfolio preview ---------- */
+  const imgA = $('#preview-a'), imgB = $('#preview-b'), previewUrl = $('#preview-url');
+  let front = imgA, back = imgB, activeRow = null;
+  function preview(row) {
+    if (row === activeRow) return;
+    activeRow?.classList.remove('active');
+    activeRow = row;
+    row.classList.add('active');
+    if (!imgA) return;
+    previewUrl.textContent = row.dataset.host;
+    if (front.getAttribute('src') === row.dataset.img) return;
+    back.src = row.dataset.img;
+    front.classList.remove('is-on'); front.classList.add('is-leaving');
+    back.classList.remove('is-leaving');
+    void back.offsetWidth; // restart the wipe
+    back.classList.add('is-on');
+    [front, back] = [back, front];
+  }
+  rows.forEach(r => {
+    r.addEventListener('mouseenter', () => preview(r));
+    r.addEventListener('focus', () => preview(r));
+  });
+  if (rows[0]) preview(rows[0]);
 
-/* Bilingual content and fixed regional pricing. No live exchange-rate conversion. */
-(() => {
-  'use strict';
-  const english = {"txt_001":"Skip to content","txt_002":"WEB DEVELOPMENT","txt_003":"ABOUT","txt_004":"PORTFOLIO","txt_005":"PROCESS","txt_006":"PRICING","txt_007":"CHAT ON WHATSAPP ↗","txt_008":"LET’S TALK <span aria-hidden=\"true\">↗</span>","txt_009":"<span class=\"eyebrow-line\"></span> PROFESSIONAL WEBSITE DEVELOPMENT","txt_010":"Websites<br/><em>done right.</em>","txt_011":"I design and develop professional, responsive websites tailored to your business. From visual design to code, every detail is built to showcase your services and make it easy for customers to reach you.","txt_012":"START YOUR PROJECT <span aria-hidden=\"true\">↗</span>","txt_013":"EXPLORE MY WORK <span aria-hidden=\"true\">↓</span>","txt_014":"<i></i> ABOUT MY WORK","txt_015":"A website that reflects<br/><em>your business.</em>","txt_016":"I’m <strong>Henrique Silva</strong>. I have 9 years of experience in web development and also work in Information Technology (IT). I build websites for businesses and professionals, handling design, coding, mobile responsiveness and launch.","txt_017":"VIEW MY PROJECTS <span aria-hidden=\"true\">↗</span>","txt_018":"Design that fits<br/><em>your brand.</em>","txt_019":"Fast and<br/><em>responsive.</em>","txt_020":"Built to<br/><em>bring customers.</em>","txt_021":"Custom layouts with your brand’s colors, typography and visual identity — without relying on generic templates.","txt_022":"Your website works smoothly on phones, tablets and desktops, with easy navigation and a focus on loading speed.","txt_023":"I structure the content so visitors understand your services and can quickly contact your business on WhatsApp.","txt_024":"<i></i> WEBSITES I’VE BUILT","txt_025":"Real projects.<br/><em>Live websites.</em>","txt_026":"Explore websites I've developed for businesses, professionals, organizations and communities. Open each project to view the live website.","txt_027":"INFORMATION TECHNOLOGY","txt_028":"OUTSOURCED SERVICES","txt_029":"PILATES & PHYSIOTHERAPY","txt_030":"INFORMATION TECHNOLOGY","txt_031":"Business website showcasing Sitcon’s IT services, equipment management and printing solutions.","txt_032":"Corporate website presenting outsourced services and making it easy to request commercial proposals.","txt_033":"Custom website introducing Pilates and physiotherapy services, with quick access to appointment booking.","txt_034":"Corporate website presenting technical support, IT management and business technology solutions.","txt_035":"VISIT WEBSITE <b>↗</b>","txt_036":"VISIT WEBSITE <b>↗</b>","txt_037":"VISIT WEBSITE <b>↗</b>","txt_038":"VISIT WEBSITE <b>↗</b>","txt_039":"Visit website <span aria-hidden=\"true\">↗</span>","txt_040":"Visit website <span aria-hidden=\"true\">↗</span>","txt_041":"Visit website <span aria-hidden=\"true\">↗</span>","txt_042":"Visit website <span aria-hidden=\"true\">↗</span>","txt_043":"LIVE WEBSITES — CLICK TO EXPLORE.","txt_044":"I WANT A WEBSITE FOR MY BUSINESS <span aria-hidden=\"true\">↗</span>","txt_045":"<i></i> HOW I BUILD YOUR WEBSITE","txt_046":"From the first conversation<br/>to <em>launch day.</em>","txt_047":"You stay involved in the key decisions while I take care of structure, design, development, testing and launch.","txt_048":"Understanding your needs","txt_049":"Custom design","txt_050":"Web development","txt_051":"Launch & maintenance","txt_052":"We discuss your business, the pages you need and what visitors should be able to do on your website.","txt_053":"I organize the content and create a visual design aligned with your brand identity.","txt_054":"I build the pages and test navigation across phones, tablets and computers.","txt_055":"Once approved, your website goes live, followed by the maintenance included in your chosen plan.","txt_056":"<i></i> WEBSITE PACKAGES","txt_057":"The right website<br/><em>for your business.</em>","txt_058":"Compare the features of each package. Every option includes responsive development and 12 months of maintenance.","txt_059":"Basic Website","txt_060":"Professional Website","txt_061":"Business Website","txt_062":"A clear, professional way to present your services and connect with customers.","txt_063":"More pages and a custom design for growing businesses.","txt_064":"Fully tailored development with advanced features and integrations.","txt_065":"WHAT’S INCLUDED","txt_066":"WHAT’S INCLUDED","txt_067":"WHAT’S INCLUDED","txt_068":"1 to 3 pages","txt_069":"Responsive design","txt_070":"WhatsApp button","txt_071":"Hosting included","txt_072":"12 months of maintenance","txt_073":"4 to 8 pages","txt_074":"Design tailored to your brand identity","txt_075":"Animations and SEO","txt_076":"Hosting + backups","txt_077":"12 months of maintenance","txt_078":"Custom-built project","txt_079":"Advanced integrations and features","txt_080":"Performance optimization","txt_081":"Priority support","txt_082":"12 months of maintenance","txt_083":"CHOOSE THIS PACKAGE <span aria-hidden=\"true\">↗</span>","txt_084":"CHOOSE THIS PACKAGE <span aria-hidden=\"true\">↗</span>","txt_085":"CHOOSE THIS PACKAGE <span aria-hidden=\"true\">↗</span>","txt_086":"Not sure which package fits? <a href=\"https://wa.me/5511996388468\" target=\"_blank\" rel=\"noopener noreferrer\" data-wa=\"guidance\">Let’s find the right option on WhatsApp ↗</a>","txt_087":"<i></i> GET A QUOTE ON WHATSAPP","txt_088":"Ready to build<br/><em>your business website?</em>","txt_089":"Tell me about the website you need.<br/>I’ll reply to you personally on WhatsApp.","txt_090":"CHAT ON WHATSAPP","txt_091":"BACK TO TOP ↑","txt_092":"WEB DEVELOPMENT","txt_093":"© <span id=\"year\">2026</span> HENRIQUE SILVA. ALL RIGHTS RESERVED.","txt_094":"WEBSITE DESIGN & DEVELOPMENT.","txt_095":"WHATSAPP ↗","txt_096":"<i></i> DEVELOPMENT EXPERIENCE","txt_097":"9 years of experience<br/><em>in web development.</em>","txt_098":"I have 9 years of experience in web development, along with experience in Information Technology (IT). This background helps me combine strong visual design with the technical aspects of each project, focusing on usability, responsiveness and performance.","txt_099":"Hands-on experience","txt_100":"Web development & IT","txt_101":"Results-focused","txt_102":"Ongoing work with design, coding, responsiveness and website publishing.","txt_103":"My background in Information Technology complements my work in design, development and website launch.","txt_104":"Every website is built to inspire trust, strengthen your brand and make it easier for new clients to contact you.","txt_105":"YEARS","txt_106":"building professional websites","txt_107":"PILATES & WELLNESS","txt_108":"Website for a Pilates studio in Alphaville, showcasing classes and providing quick access to booking.","txt_109":"UNION & MEMBER SERVICES","txt_110":"Institutional website for a healthcare workers’ union, with access to services, documents and contact channels.","txt_111":"VISIT WEBSITE <b>↗</b>","txt_112":"VISIT WEBSITE <b>↗</b>","txt_113":"Visit website <span aria-hidden=\"true\">↗</span>","txt_114":"Visit website <span aria-hidden=\"true\">↗</span>","txt_115":"MOTORCYCLE CLUB","txt_116":"A bold, custom-designed website for Indigestos Motorcycle Club, bringing together its history, rides, merchandise and community access.","txt_117":"VISIT WEBSITE <b>↗</b>","txt_118":"Visit website <span aria-hidden=\"true\">↗</span>"};
-  const localized = [...document.querySelectorAll('[data-i18n]')];
+  /* ---------- scroll-linked: header, ruler, process line, nav ---------- */
+  const ruler = $('#ruler');
+  const years = $$('.ruler-years li');
+  const steps = $('#steps');
+  const stepItems = $$('.step');
+  const wa = $('.floating-whatsapp');
+  const contact = $('#contato');
+  const navLinks = $$('#main-nav a[href^="#"]');
+  const sections = navLinks.map(a => $(a.getAttribute('href'))).filter(Boolean);
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+  const progressOf = (el, start = .85, end = .35) => {
+    const r = el.getBoundingClientRect();
+    return clamp((innerHeight * start - r.top) / (innerHeight * (start - end) || 1));
+  };
+  let ticking = false;
+  function onScroll() {
+    ticking = false;
+    header?.classList.toggle('scrolled', scrollY > 12);
+    if (ruler) {
+      const p = reduce ? 1 : progressOf(ruler, .9, .45);
+      ruler.style.setProperty('--p', p.toFixed(3));
+      years.forEach((y, i) => y.classList.toggle('lit', p >= i / (years.length - 1) - .001));
+    }
+    if (steps) {
+      const p = reduce ? 1 : progressOf(steps, .8, .4);
+      steps.style.setProperty('--p', p.toFixed(3));
+      stepItems.forEach((s, i) => s.classList.toggle('lit', p >= i / Math.max(1, stepItems.length - 1) - .02));
+    }
+    if (wa && contact) {
+      const r = contact.getBoundingClientRect();
+      wa.classList.toggle('hidden', r.top < innerHeight * .7 && r.bottom > 0);
+    }
+    let currentSection = null;
+    sections.forEach(sec => { if (sec.getBoundingClientRect().top < innerHeight * .4) currentSection = sec; });
+    navLinks.forEach(a => a.classList.toggle('current', currentSection && a.getAttribute('href') === '#' + currentSection.id));
+  }
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- bilingual ---------- */
+  const english = {
+    'skip': 'Skip to content',
+    'brand.role': 'Web development',
+    'nav.exp': 'Experience', 'nav.work': 'Work', 'nav.process': 'Process', 'nav.plans': 'Pricing', 'nav.cta': 'Chat on WhatsApp',
+    'hero.title': 'I’ve been building business websites for 9&nbsp;years.',
+    'hero.lede': 'Design, development, hosting and maintenance handled by the same person from start to finish. Since I also work in IT, the technical side of your website is never an afterthought.',
+    'hero.cta': 'Get a quote on WhatsApp',
+    'hero.secondary': 'See live websites',
+    'fact.years': 'years in web development',
+    'fact.sites': 'live websites in this portfolio',
+    'fact.care': 'months of maintenance on every plan',
+    'exp.title': 'Nine years of launching, refining and maintaining websites.',
+    'exp.text': 'I started in web development in 2017 and also work in Information Technology. That means I take care of what visitors see and what happens behind the scenes: domain, hosting, setup and maintenance.',
+    'ruler.start': 'First websites',
+    'ruler.end': 'Today: 7 live projects',
+    'layers.title': 'Everything a website needs, from one person.',
+    'layers.intro': 'Hover or tap each layer. The ones marked in blue are where my IT background makes a difference.',
+    'l0.name': 'Content and structure', 'l0.desc': 'I organize the pages so visitors understand what you do within seconds.',
+    'l1.name': 'Design that fits your brand', 'l1.desc': 'Your colors, typography and imagery. No off-the-shelf templates.',
+    'l2.name': 'Phone, tablet and desktop', 'l2.desc': 'Every page is tested on all three sizes before it goes live.',
+    'l3.name': 'Development', 'l3.desc': 'Code written for your project, lightweight and easy to update.',
+    'l4.name': 'Speed and Google', 'l4.desc': 'Optimized images, fast loading and a structure search engines understand.',
+    'l5.name': 'Domain and hosting', 'l5.desc': 'Registration, setup and launch. You never have to deal with a technical dashboard.',
+    'l6.name': 'Maintenance', 'l6.desc': 'Adjustments, updates and support for 12 months after delivery.',
+    'work.title': 'Websites I built that are live right now.',
+    'work.text': 'Technology companies, healthcare, services and communities. Hover to preview each one and click to open the live site.',
+    'p1.sector': 'Motorcycle club', 'p1.desc': 'Black and red identity with the club’s history, rides, merchandise and community access.',
+    'p2.sector': 'Information technology', 'p2.desc': 'IT services, equipment management and printing solutions.',
+    'p3.sector': 'Outsourced services', 'p3.desc': 'Corporate website with service pages and commercial proposal requests.',
+    'p4.sector': 'Pilates and physiotherapy', 'p4.desc': 'Treatments overview with direct access to booking.',
+    'p5.sector': 'Information technology', 'p5.desc': 'Technical support, IT management and business solutions.',
+    'p6.sector': 'Pilates and wellness', 'p6.desc': 'Studio in Alphaville, with classes and quick booking.',
+    'p7.sector': 'Healthcare workers’ union', 'p7.desc': 'Services, documents and contact channels for healthcare workers.',
+    'process.title': 'From the first WhatsApp message to a live website.',
+    's1.t': 'Conversation', 's1.p': 'I learn about your business, your customers and which pages the site needs.',
+    's2.t': 'Layout', 's2.p': 'I design the look around your brand and you approve it before I start coding.',
+    's3.t': 'Development', 's3.p': 'I build the pages and test them on phones, tablets and computers.',
+    's4.t': 'Launch', 's4.p': 'I publish it on your domain and keep handling the maintenance in your plan.',
+    'pricing.title': 'Three formats, the same level of care.',
+    'pricing.text': 'All of them include a responsive website, hosting and 12 months of maintenance.',
+    'plan1.name': 'Basic Website', 'plan1.sub': 'To present your services and receive enquiries.',
+    'plan1.f1': '1 to 3 pages', 'plan1.f2': 'Responsive design', 'plan1.f3': 'WhatsApp button', 'plan1.f4': 'Hosting included', 'plan1.f5': '12 months of maintenance',
+    'plan2.flag': 'Most requested', 'plan2.name': 'Professional Website', 'plan2.sub': 'More pages and customization for growing businesses.',
+    'plan2.f1': '4 to 8 pages', 'plan2.f2': 'Design built on your brand identity', 'plan2.f3': 'Animations and SEO', 'plan2.f4': 'Hosting and backups', 'plan2.f5': '12 months of maintenance',
+    'plan3.name': 'Business Website', 'plan3.sub': 'Fully tailored project with integrations and advanced features.',
+    'plan3.f1': 'Custom-built project', 'plan3.f2': 'Advanced integrations and features', 'plan3.f3': 'Performance optimization', 'plan3.f4': 'Priority support', 'plan3.f5': '12 months of maintenance',
+    'plan.cta': 'Choose this plan',
+    'pricing.note': 'Not sure which one fits?', 'pricing.noteLink': 'Tell me what you need and I’ll recommend one.',
+    'contact.title': 'Shall we put your business online?',
+    'contact.text': 'Send me a message about what you do and what you expect from the website. I reply personally, usually the same day.',
+    'contact.cta': 'Chat on WhatsApp',
+    'footer.top': 'Back to top'
+  };
+  const localized = $$('[data-i18n]');
   const original = new Map(localized.map(el => [el, el.innerHTML]));
-  const switchButtons = [...document.querySelectorAll('.language-option')];
-  const plans = [...document.querySelectorAll('.plans .plan')];
+  const switchButtons = $$('.lang-option');
+  const plans = $$('.plans .plan');
   const prices = {
-    pt: [ {name:'Site Básico', number:'1.499', label:'R$ 1.499'}, {name:'Site Profissional', number:'2.999', label:'R$ 2.999'}, {name:'Site Empresarial', number:'4.999', label:'R$ 4.999'} ],
-    en: [ {name:'Basic Website', number:'399', label:'€399'}, {name:'Professional Website', number:'699', label:'€699'}, {name:'Business Website', number:'999', label:'€999'} ]
+    pt: [{ name: 'Site Básico', number: '1.499', label: 'R$ 1.499' }, { name: 'Site Profissional', number: '2.999', label: 'R$ 2.999' }, { name: 'Site Empresarial', number: '4.999', label: 'R$ 4.999' }],
+    en: [{ name: 'Basic Website', number: '399', label: '€399' }, { name: 'Professional Website', number: '699', label: '€699' }, { name: 'Business Website', number: '999', label: '€999' }]
   };
   const copy = {
     pt: {
-      title:'Henrique Silva — Design & Desenvolvimento Web',
-      description:'Criação de sites profissionais e responsivos por Henrique Silva. Desenvolvimento web personalizado, portfólio de projetos reais e planos a partir de R$ 1.499.',
-      ogTitle:'Henrique Silva — Criação de Sites Profissionais',
-      ogDescription:'Sites empresariais personalizados, rápidos e responsivos. Conheça projetos reais e solicite um orçamento pelo WhatsApp.',
+      title: 'Henrique Silva — Sites para empresas',
+      description: 'Criação de sites profissionais por Henrique Silva: 9 anos em desenvolvimento web e experiência em TI. Veja sites publicados e peça um orçamento pelo WhatsApp.',
+      ogTitle: 'Henrique Silva — Criação de Sites Profissionais',
+      ogDescription: '9 anos fazendo sites para empresas. Design, programação, hospedagem e manutenção com a mesma pessoa.',
       wa: {
-        nav:'Olá, Henrique! Quero conversar sobre a criação de um site.',
-        hero:'Olá, Henrique! Vi seu site e quero falar sobre um projeto.',
-        portfolio:'Olá, Henrique! Gostei dos projetos do seu portfólio. Quero criar um site.',
-        guidance:'Olá, Henrique! Gostaria de ajuda para escolher o plano ideal para o meu site.',
-        contact:'Olá, Henrique! Quero conversar sobre a criação do meu site.',
-        footer:'Olá, Henrique!',
-        floating:'Olá, Henrique! Gostaria de um orçamento para meu site.'
+        nav: 'Olá, Henrique! Quero conversar sobre a criação de um site.',
+        hero: 'Olá, Henrique! Vi seu portfólio e quero um orçamento para um site.',
+        guidance: 'Olá, Henrique! Gostaria de ajuda para escolher o plano ideal para o meu site.',
+        contact: 'Olá, Henrique! Quero conversar sobre a criação do meu site.',
+        floating: 'Olá, Henrique! Gostaria de um orçamento para meu site.'
       }
     },
     en: {
-      title:'Henrique Silva — Professional Website Design & Development',
-      description:'Professional websites and custom web development by Henrique Silva. Explore real projects and website packages starting at €399.',
-      ogTitle:'Henrique Silva — Professional Website Development',
-      ogDescription:'Custom, responsive business websites. Explore real projects and request a quote directly on WhatsApp.',
+      title: 'Henrique Silva — Websites for businesses',
+      description: 'Professional websites by Henrique Silva: 9 years in web development plus IT experience. See live projects and get a quote on WhatsApp.',
+      ogTitle: 'Henrique Silva — Professional Website Development',
+      ogDescription: '9 years building business websites. Design, development, hosting and maintenance from one person.',
       wa: {
-        nav:'Hi Henrique! I’d like to talk about building a website.',
-        hero:'Hi Henrique! I saw your portfolio and would like to discuss a website project.',
-        portfolio:'Hi Henrique! I liked the projects in your portfolio and would like a website for my business.',
-        guidance:'Hi Henrique! Could you help me choose the right website package?',
-        contact:'Hi Henrique! I’d like to discuss building my website.',
-        footer:'Hi Henrique!',
-        floating:'Hi Henrique! I’d like a quote for a new website.'
+        nav: 'Hi Henrique! I’d like to talk about building a website.',
+        hero: 'Hi Henrique! I saw your portfolio and would like a quote for a website.',
+        guidance: 'Hi Henrique! Could you help me choose the right website package?',
+        contact: 'Hi Henrique! I’d like to discuss building my website.',
+        floating: 'Hi Henrique! I’d like a quote for a new website.'
       }
     }
   };
   const setMeta = (key, value) => {
-    const selector = key === 'description' ? 'meta[name="description"]' : `meta[property="${key}"]`;
-    document.querySelector(selector)?.setAttribute('content', value);
+    const sel = key === 'description' ? 'meta[name="description"]' : `meta[property="${key}"]`;
+    $(sel)?.setAttribute('content', value);
   };
-  const setWhatsApp = (locale) => {
-    document.querySelectorAll('[data-wa]').forEach(link => {
-      const key = link.getAttribute('data-wa');
-      let message = copy[locale].wa[key];
-      if (['basic','professional','business'].includes(key)) {
-        const i = {basic:0,professional:1,business:2}[key];
-        const {name, label} = prices[locale][i];
-        message = locale === 'en'
+  const setWhatsApp = (lang) => {
+    $$('[data-wa]').forEach(link => {
+      const key = link.dataset.wa;
+      let message = copy[lang].wa[key];
+      const planIndex = { basic: 0, professional: 1, business: 2 }[key];
+      if (planIndex !== undefined) {
+        const { name, label } = prices[lang][planIndex];
+        message = lang === 'en'
           ? `Hi Henrique! I’m interested in the ${name} package priced at ${label}. Can we talk?`
           : `Olá, Henrique! Tenho interesse no ${name} de ${label}. Podemos conversar?`;
       }
       if (message) link.href = 'https://wa.me/5511996388468?text=' + encodeURIComponent(message);
     });
   };
-  const applyLanguage = (locale, shouldSave = true) => {
+  function applyLanguage(locale, save = true) {
     const lang = locale === 'en' ? 'en' : 'pt';
-    localized.forEach(el => { el.innerHTML = lang === 'en' ? english[el.dataset.i18n] : original.get(el); });
-    // Some pricing-note HTML is re-created on each switch; refresh its WhatsApp link after translation.
+    localized.forEach(el => { el.innerHTML = lang === 'en' ? (english[el.dataset.i18n] ?? original.get(el)) : original.get(el); });
     document.documentElement.lang = lang === 'en' ? 'en' : 'pt-BR';
     document.title = copy[lang].title;
     setMeta('description', copy[lang].description);
@@ -207,31 +339,27 @@
     setMeta('og:description', copy[lang].ogDescription);
     setMeta('og:locale', lang === 'en' ? 'en_US' : 'pt_BR');
     plans.forEach((plan, i) => {
-      plan.querySelector('.plan-price small').textContent = lang === 'en' ? '€' : 'R$';
-      plan.querySelector('.plan-price strong').textContent = prices[lang][i].number;
+      $('.plan-price small', plan).textContent = lang === 'en' ? '€' : 'R$';
+      $('.plan-price strong', plan).textContent = prices[lang][i].number;
     });
-    document.querySelectorAll('[data-i18n-aria-label], [data-i18n-title]').forEach(el => {
-      for (const attr of ['aria-label','title']) {
-        if (el.hasAttribute('data-i18n-' + attr)) {
-          el.setAttribute(attr, el.getAttribute('data-' + (lang === 'en' ? 'i18n' : 'pt') + '-' + attr));
-        }
-      }
-    });
-    document.querySelector('.language-switch')?.setAttribute('aria-label',lang === 'en' ? 'Select language' : 'Selecionar idioma');
-    const toggle = document.getElementById('menu-toggle');
-    if (toggle) toggle.setAttribute('aria-label', toggle.getAttribute('aria-expanded') === 'true' ? (lang === 'en' ? 'Close menu' : 'Fechar menu') : (lang === 'en' ? 'Open menu' : 'Abrir menu'));
-    for (const button of switchButtons) {
-      const active = button.dataset.lang === lang;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', String(active));
+    for (const attr of ['aria-label', 'title', 'alt']) {
+      $$(`[data-i18n-${attr}]`).forEach(el => el.setAttribute(attr, el.getAttribute(`data-${lang === 'en' ? 'i18n' : 'pt'}-${attr}`)));
     }
-    const year = document.getElementById('year');
+    $('.lang')?.setAttribute('aria-label', lang === 'en' ? 'Select language' : 'Selecionar idioma');
+    setToggleLabel(toggle?.getAttribute('aria-expanded') === 'true');
+    switchButtons.forEach(b => {
+      const on = b.dataset.lang === lang;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    const year = $('#year');
     if (year) year.textContent = String(new Date().getFullYear());
     setWhatsApp(lang);
-    if (shouldSave) { try { localStorage.setItem('hs-site-language', lang); } catch (_) { /* Private mode */ } }
-  };
-  switchButtons.forEach(btn => btn.addEventListener('click', () => applyLanguage(btn.dataset.lang)));
+    if (stageSector && projects.length) updateCaption();
+    if (save) { try { localStorage.setItem('hs-site-language', lang); } catch (_) { /* storage unavailable */ } }
+  }
+  switchButtons.forEach(b => b.addEventListener('click', () => applyLanguage(b.dataset.lang)));
   let saved = 'pt';
-  try { saved = localStorage.getItem('hs-site-language') === 'en' ? 'en' : 'pt'; } catch (_) { /* Storage unavailable */ }
+  try { saved = localStorage.getItem('hs-site-language') === 'en' ? 'en' : 'pt'; } catch (_) { /* storage unavailable */ }
   applyLanguage(saved, false);
 })();

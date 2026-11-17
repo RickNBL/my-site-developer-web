@@ -1,63 +1,37 @@
-# Henrique Silva — Portfólio Bilíngue (PT / EN)
+# Henrique Silva — Portfólio (PT / EN)
 
-Site profissional para apresentar serviços de desenvolvimento web, portfólio real e pacotes, com identidade visual HS, vídeo silencioso e WhatsApp como contato exclusivo.
+Site estático (HTML, CSS e JS puros, sem build) para apresentar 9 anos de experiência em desenvolvimento web, os sites publicados e os planos, com contato pelo WhatsApp.
 
-## Como publicar
+## Direção visual
 
-1. Extraia o ZIP.
-2. Envie **todo o conteúdo da pasta** `henrique-silva-reformulado` para `public_html` (ou publique no Netlify / Vercel).
-3. Mantenha `index.html`, `styles.css`, `script.js` e a pasta `assets/` juntos.
-4. Acesse o domínio com HTTPS. O site não exige backend.
+- **Paleta** tirada do monograma HS: prata `#e4e7ea`, papel `#f4f5f6`, grafite `#19212b`, aço `#5b6570` e um único acento cobalto `#2c3fd6`.
+- **Tipografia**: Archivo variável. A largura da fonte é o motivo de animação — os títulos "se expandem" ao entrar na tela.
+- **Órbita**: a elipse com a bolinha do logo aparece animada no topo e no contato.
 
-Use o arquivo de prévia HTML separado para visualizar a versão completa sem hospedagem ou outros arquivos.
+## Animações
 
-## Português e inglês
-
-O visitante usa os botões **PT** e **EN** do cabeçalho para alternar imediatamente. A escolha permanece salva no navegador (`localStorage`). Na primeira visita, o padrão é português. A troca também ajusta títulos, recursos, descrições, acessibilidade, SEO básico, os preços e os textos das mensagens do WhatsApp.
-
-| Plano no Brasil | Preço BRL | Plano em inglês | Preço EUR |
-|---|---:|---|---:|
-| Site Básico | R$ 1.499 | Basic Website | €399 |
-| Site Profissional | R$ 2.999 | Professional Website | €699 |
-| Site Empresarial | R$ 4.999 | Business Website | €999 |
-
-**Atenção:** os valores em euro são preços fixos definidos para a versão em inglês, não uma conversão cambial automática.
-
-Os recursos do antigo plano Empresarial (4–8 páginas) permanecem no atual **Site Profissional**, e os recursos do antigo Profissional (sob medida) permanecem no atual **Site Empresarial**.
+- Topo: um navegador "monta" cada site real (wireframe → print) e troca de projeto a cada 5 s; o endereço é digitado na barra. Pausa ao passar o mouse; os traços abaixo permitem escolher o projeto.
+- Experiência: régua 2017 → hoje que preenche conforme a rolagem.
+- Camadas do site: pilha 3D interativa; as camadas em azul são as que a experiência em TI cobre.
+- Trabalhos: lista com prévia ao lado que troca ao passar o mouse (no celular, cada item mostra o print).
+- Processo: linha que se desenha com a rolagem.
+- Tudo respeita a opção "reduzir movimento" do sistema.
 
 ## Personalizar
 
-- O conteúdo em português fica no `index.html`.
-- As traduções em inglês e os preços PT/EN ficam na seção `Bilingual content` de `script.js`.
-- Os botões de contato geram mensagens para WhatsApp **+55 (11) 99638-8468**, com idioma, nome do plano e preço corretos.
-- Projetos ficam na seção `id="portfolio"` de `index.html`, e prints em `assets/projeto-*.webp`.
-- Cores, fontes, responsividade e opções do seletor ficam em `styles.css`.
-- O vídeo `assets/henrique-identidade.mp4` foi preparado sem faixa de áudio e toca automaticamente, sem controles; a reprodução pode depender de permissões do navegador.
-- Não há formulário de contato.
+- Textos em português: `index.html`. Traduções em inglês, preços PT/EN e mensagens do WhatsApp: objeto `english`, `prices` e `copy` em `script.js`.
+- Ano de início da régua (2017) e a contagem "7 sites" estão escritos no `index.html` e no `script.js` — ajuste se mudar.
+- Novo projeto: copie um `<li>` dentro de `#work-list` (com `data-img` e `data-host`) e adicione as chaves `pX.sector` / `pX.desc` em `script.js`. O topo passa a exibi-lo automaticamente.
+- Prints em `assets/projeto-*.webp`.
 
-## Arquivos
+| Plano | BRL | EUR (versão EN) |
+|---|---:|---:|
+| Site Básico | R$ 1.499 | €399 |
+| Site Profissional | R$ 2.999 | €699 |
+| Site Empresarial | R$ 4.999 | €999 |
 
-- `index.html`: conteúdo original em português, imagens e navegação.
-- `styles.css`: visual, animações e estilo do seletor.
-- `script.js`: efeitos, vídeo e sistema bilíngue.
-- `assets/`: logo, vídeo e capturas reais do portfólio.
+Os valores em euro são fixos, não conversão cambial.
 
+## Publicar
 
-## Atualização: experiência profissional e TI
-
-- Seção de experiência em desenvolvimento web com contador animado **9 anos** e órbitas 3D em CSS.
-- Número completamente visível e centralizado em computadores e celulares.
-- Apresentação profissional inclui também experiência em Tecnologia da Informação (TI), nas versões Português e English.
-- O prazo de 9 anos refere-se ao desenvolvimento web; não foi atribuído prazo à experiência em TI.
-- Foi corrigida a estrutura HTML da seção de experiência.
-
-
-## Projetos adicionados ao portfólio
-- **Studio Pina Pilates** — https://pina-pilates.vercel.app/ — `assets/projeto-pina.webp`
-- **SUEESSOR** — https://sueessor-2026.vercel.app/ — `assets/projeto-sueessor.webp`
-
-Os dois cards são bilíngues (PT / EN), seguindo o comportamento dos demais projetos. Para atualizar suas imagens futuramente, substitua os arquivos `.webp` pelos novos prints mantendo os nomes.
-
-
-## Portfólio atualizado
-O projeto Indigestos Moto Clube aparece como primeiro card do portfólio. Print em `assets/projeto-indigestos.webp` e endereço `https://indigestosmc.vercel.app/`. As descrições funcionam em português e inglês.
+Envie `index.html`, `styles.css`, `script.js` e `assets/` juntos (Vercel, Netlify ou `public_html`).
