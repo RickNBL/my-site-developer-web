@@ -67,7 +67,7 @@ O projeto Indigestos Moto Clube aparece como primeiro card do portfólio. Print 
 
 Nova identidade visual construída a partir do monograma HS (letras prateadas + órbita + esfera):
 
-- **Paleta:** alumínio `#E3E5E8`, névoa `#EEF0F2`, grafite aço `#1D2024`, aço `#5B626B` e um único acento cobalto `#2C3BEA`.
+- **Paleta:** alumínio `#E3E5E8`, névoa `#EEF0F2`, grafite aço `#1D2024`, aço `#5B626B` e um único acento verde-esmeralda `#0B7A55` (claro `#5FD3A1` nas seções escuras).
 - **Tipografia:** Bricolage Grotesque (títulos condensados e pesados, texto corrido na mesma família).
 - **Hero:** nome em tipografia cromada com brilho animado e um anel orbital 3D que passa por trás e pela frente das letras; a esfera gira e o anel reage ao mouse e à rolagem.
 - **Projetos em órbita:** os prints dos 7 sites giram no anel do hero, passando por trás e pela frente do nome; ao passar o mouse a órbita desacelera, e o clique leva ao projeto no portfólio.
