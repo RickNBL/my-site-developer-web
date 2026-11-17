@@ -254,6 +254,8 @@
   const cards = $$('.o-card');
   const glow = $('.hero-glow');
   const chars = $$('.hero-name .ch');
+  const logoWrap = $('#logo-wrap');
+  const logoTilt = {x:0, y:0};
   const cardState = {speed:1, target:1};
   let cardPhase = 0;
 
@@ -265,6 +267,9 @@
     const k = vr.width / 1000;
     const ox = vr.left - sr.left, oy = vr.top - sr.top;
     const rad = orbit.rot * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+    const lr = logoWrap ? logoWrap.getBoundingClientRect() : null;
+    const lcx = lr ? lr.left - sr.left + lr.width / 2 : 0, lcy = lr ? lr.top - sr.top + lr.height / 2 : 0;
+    const cw = cards[0].offsetWidth, ch = cards[0].offsetHeight;
     cards.forEach((card, i) => {
       const phi = cardPhase + i * (Math.PI * 2 / cards.length);
       const lx = orbit.rx * Math.cos(phi), ly = orbit.ry * Math.sin(phi);
@@ -274,9 +279,17 @@
       const front = depth >= 0;
       const scale = .58 + .42 * (depth + 1) / 2;
       const turn = Math.cos(phi) * -28;               // cards face the viewer as they come round
-      card.style.zIndex = front ? 3 : 0;
+      card.style.zIndex = 0;
       card.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) perspective(700px) rotateY(${turn.toFixed(1)}deg) rotate(${(orbit.rot * .5).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-      card.style.opacity = (intro * (front ? 1 : .45 + .55 * (depth + 1))).toFixed(3);
+      // fade cards that slide behind the logo so it always reads cleanly
+      let clear = 1;
+      if (lr) {
+        const ax = Math.abs(x - lcx) / (lr.width / 2 + cw * .45);
+        const ay = Math.abs(y - lcy) / (lr.height / 2 + ch * .45);
+        clear = clamp((Math.max(ax, ay) - .82) / .18);
+      }
+      card.style.opacity = (intro * (front ? 1 : .45 + .55 * (depth + 1)) * (.06 + .94 * clear)).toFixed(3);
+      card.style.pointerEvents = clear < .3 ? 'none' : '';
       card.style.filter = front ? '' : `blur(${(-depth * 1.6).toFixed(2)}px) saturate(.7)`;
     });
   }
@@ -325,6 +338,12 @@
           orbit.theta += (0.0065 + scrollFactor * 0.02) * cardState.speed;
           cardPhase += (0.0022 + scrollFactor * 0.008) * cardState.speed;
           drawOrbit();
+          if (logoWrap) {
+            logoTilt.x = lerp(logoTilt.x, orbit.mouseX, .06);
+            logoTilt.y = lerp(logoTilt.y, orbit.mouseY, .06);
+            logoWrap.style.setProperty('--lry', (logoTilt.x * 9).toFixed(2) + 'deg');
+            logoWrap.style.setProperty('--lrx', (logoTilt.y * -7).toFixed(2) + 'deg');
+          }
           if (sphereIn < 1) spheres.forEach(s => { const r = +s.getAttribute('r'); s.setAttribute('r', (r * sphereIn).toFixed(1)); });
           const cardsIn = clamp((now - start - 1300) / 1400);
           placeCards(1 - Math.pow(1 - cardsIn, 3));
